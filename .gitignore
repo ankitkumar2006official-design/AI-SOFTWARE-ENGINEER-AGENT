@@ -1,0 +1,50 @@
+# ============================================
+# Git Ignore Configuration for AI Agent Workspace
+# ============================================
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# Build and dist outputs
+dist/
+frontend/dist/
+build/
+
+# Vite runtime cache
+.vite/
+frontend/node_modules/.vite/
+
+# Environment files and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+*.env
+!*.env.example
+
+# Python runtime artifacts
+__pycache__/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

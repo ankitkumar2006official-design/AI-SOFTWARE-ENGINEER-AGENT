@@ -12,17 +12,19 @@ client = Groq(
 
 def generate_response(prompt):
 
-    chat_completion = client.chat.completions.create(
-
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-
-        model="llama-3.3-70b-versatile"
-
-    )
-
-    return chat_completion.choices[0].message.content
+    candidate_models = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]
+    for model_id in candidate_models:
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                model=model_id
+            )
+            return chat_completion.choices[0].message.content
+        except Exception:
+            continue
+    raise Exception("No available chat model responded successfully on Groq.")

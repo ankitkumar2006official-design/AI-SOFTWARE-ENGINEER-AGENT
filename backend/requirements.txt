@@ -1,7 +1,8 @@
 flask
 flask-cors
 python-dotenv
-huggingface_hub
+groq
 requests
+huggingface_hub
 langchain
 pydantic
