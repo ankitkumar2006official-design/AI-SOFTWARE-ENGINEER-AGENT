@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { checkBackendHealth, sendChatMessage } from '../services/api';
+import { checkBackendHealth, sendChatMessage, API_BASE_URL } from '../services/api';
 
 const AppContext = createContext();
 
@@ -230,14 +230,15 @@ export const AppProvider = ({ children }) => {
   // User Settings
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('agy_settings');
-    return saved ? JSON.parse(saved) : {
-      theme: 'dark',
-      defaultMode: 'generator',
-      autoScroll: true,
+    const parsed = saved ? JSON.parse(saved) : {};
+    return {
+      theme: parsed.theme || 'dark',
+      defaultMode: parsed.defaultMode || 'generator',
+      autoScroll: parsed.autoScroll !== undefined ? parsed.autoScroll : true,
       soundFeedback: false,
-      modelProvider: 'Groq AI Platform',
-      modelName: 'llama-3.3-70b-versatile',
-      backendUrl: 'http://localhost:5000'
+      modelProvider: 'Groq Cloud LPU',
+      modelName: 'qwen/qwen3.8-27b',
+      backendUrl: API_BASE_URL
     };
   });
 
@@ -274,16 +275,17 @@ export const AppProvider = ({ children }) => {
   // Periodic Backend Health Check
   const checkHealth = async () => {
     const res = await checkBackendHealth();
+    const displayHost = API_BASE_URL.replace(/^https?:\/\//, '');
     setBackendStatus({
       online: res.online,
       latency: res.latency,
       checkedAt: res.checkedAt,
-      statusText: res.online ? `Online (${res.latency}ms)` : 'Offline (localhost:5000)'
+      statusText: res.online ? `Online (${res.latency}ms)` : `Offline (${displayHost})`
     });
     addLog(
       res.online
-        ? `Backend heartbeat OK (${res.latency}ms)`
-        : `Backend unreachable at http://localhost:5000`,
+        ? `Backend heartbeat OK (${res.latency}ms) at ${API_BASE_URL}`
+        : `Backend unreachable at ${API_BASE_URL}`,
       res.online ? 'SUCCESS' : 'WARN'
     );
   };
@@ -442,10 +444,18 @@ export const AppProvider = ({ children }) => {
       const durationMs = endTime - startTime;
       const formattedDuration = (durationMs / 1000).toFixed(2) + 's';
       const errorMessage = err.response?.data?.error || err.message || 'Backend Connection Failure';
+      const isNetworkError = err.isNetworkError || (!err.response && (errorMessage.includes('Network Error') || err.code === 'ERR_NETWORK'));
+      const status = err.response?.status;
 
       let diagnosticTip = '';
-      if (errorMessage.toLowerCase().includes('model') && (errorMessage.includes('404') || errorMessage.includes('does not exist') || errorMessage.includes('access'))) {
-        diagnosticTip = `\n\n**Groq Model ID Notice:**\nGroq reported that \`llama-3.3-70b-versatile\` is not recognized or not enabled on your API key. To fix this:\n- Open \`backend/app.py\`\n- Go to line 88 and change:\n  \`\`\`python\n  # Replace:\n  model="llama-3.3-70b-versatile"\n  # With either of these valid Groq models:\n  model="llama-3.1-70b-versatile"   # or "llama-3.1-8b-instant"\n  \`\`\`\n- Restart \`python run.py\``;
+      if (isNetworkError) {
+        diagnosticTip = `\n\n**Connectivity Notice:**\nThe backend server at \`${API_BASE_URL}\` did not respond.\n- If hosted on Render (free tier), the web service may be spinning up from idle (takes ~30-50s). Please wait a moment and retry.\n- Target URL: \`${API_BASE_URL}\`\n- Status: Connection refused / Cold starting.`;
+      } else if (status === 401 || errorMessage.toLowerCase().includes('key') || errorMessage.toLowerCase().includes('auth')) {
+        diagnosticTip = `\n\n**Authentication Notice:**\nInvalid or missing \`GROQ_API_KEY\`. Verify that your Groq API key is set in your Render environment variables or backend \`.env\`.`;
+      } else if (status === 429 || errorMessage.toLowerCase().includes('rate limit')) {
+        diagnosticTip = `\n\n**Rate Limit Notice:**\nGroq Cloud API rate limit reached. Please wait a few moments and click **Rerun** to retry.`;
+      } else if (status === 404 || errorMessage.toLowerCase().includes('model')) {
+        diagnosticTip = `\n\n**Model Selection Notice:**\nThe requested model returned an error on Groq Cloud. The backend automatically cascades between \`qwen/qwen3.8-27b\`, \`openai/gpt-oss-120b\`, and \`openai/gpt-oss-20b\`.`;
       }
 
       const failedTask = {
@@ -454,11 +464,11 @@ export const AppProvider = ({ children }) => {
         error: errorMessage,
         durationMs,
         formattedDuration,
-        response: `### ⚠️ Agent Execution Error\n\n**Error Details:** \`${errorMessage}\`${diagnosticTip}\n\n**Troubleshooting Checklist:**\n- Ensure the backend server is running: \`cd backend && python run.py\`\n- Verify \`GROQ_API_KEY\` is configured in \`backend/.env\`\n- Confirm backend is reachable at \`http://localhost:5000\`\n- Check backend terminal logs for detailed stack traces.`,
+        response: `### ⚠️ Agent Execution Error\n\n**Error Details:** \`${errorMessage}\`${diagnosticTip}\n\n**Troubleshooting Checklist:**\n- Configured Backend: \`${API_BASE_URL}\`\n- If running locally: \`cd backend && python run.py\`\n- If deployed on Render: Verify service logs at [dashboard.render.com](https://dashboard.render.com)\n- Verify \`GROQ_API_KEY\` is configured in your environment settings`,
         steps: [
           { id: 1, name: 'Task Specification Received & Validated', status: 'completed', time: '0.1s' },
           { id: 2, name: `Agent Mode Activated: ${TOOL_MODES[toolMode]?.label || toolMode}`, status: 'completed', time: '0.2s' },
-          { id: 3, name: 'Groq Llama 3.3 70B Neural Synthesis', status: 'failed', time: formattedDuration },
+          { id: 3, name: 'Groq Cloud Neural Synthesis', status: 'failed', time: formattedDuration },
           { id: 4, name: 'AST Syntax Validation & Code Extraction', status: 'pending', time: '-' }
         ]
       };

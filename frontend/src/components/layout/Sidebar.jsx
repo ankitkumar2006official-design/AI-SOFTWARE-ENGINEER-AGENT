@@ -161,7 +161,7 @@ const Sidebar = ({ onOpenCommandPalette }) => {
                 {backendStatus.online ? 'Groq Engine Ready' : 'Backend Offline'}
               </span>
               <span className="backend-info-sub">
-                {backendStatus.online ? `${backendStatus.latency || 24}ms latency` : 'localhost:5000'}
+                {backendStatus.online ? `${backendStatus.latency || 24}ms latency` : 'Connection Offline'}
               </span>
             </div>
           )}

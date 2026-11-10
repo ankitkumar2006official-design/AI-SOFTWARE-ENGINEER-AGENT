@@ -68,7 +68,8 @@ AI-SOFTWARE-ENGINEER-AGENT/
     │   │   ├── settings/          # SettingsView
     │   │   └── common/            # CodeBlock, MarkdownRenderer, CommandPalette, Toast
     │   ├── context/               # Reactive AppContext (state management)
-    │   ├── services/              # Axios API client (http://localhost:5000)
+    │   ├── services/              # Axios API client (Centralized Render/Local API)
+│   ├── .env.example           # Frontend environment template (VITE_API_URL)
     │   ├── App.jsx                # Layout orchestrator
     │   ├── main.jsx               # React DOM entrypoint
     │   └── index.css              # Custom CSS design system
@@ -129,11 +130,37 @@ AI-SOFTWARE-ENGINEER-AGENT/
    npm install
    ```
 
-3. Start the development server:
+3. (Optional) Set your API URL:
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *In local development without `.env`, it defaults automatically to `http://localhost:5000`.*
+
+4. Start the development server:
    ```bash
    npm run dev
    ```
    *Open your browser and navigate to `http://localhost:5173`.*
+
+---
+
+### 4. Production Cloud Deployment
+
+#### Backend on Render:
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `gunicorn wsgi:app` (or `python run.py`)
+- **Environment Variables:**
+  - `GROQ_API_KEY`: Your Groq Cloud API Key
+  - `GROQ_MODEL`: *(Optional)* `qwen/qwen3.8-27b` or `openai/gpt-oss-120b`
+
+#### Frontend on Vercel:
+- **Framework Preset:** Vite
+- **Root Directory:** `frontend`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Environment Variables:**
+  - `VITE_API_URL`: `https://ai-software-engineer-agent-1.onrender.com` (your deployed Render backend URL)
 
 ---
 
@@ -159,3 +186,4 @@ AI-SOFTWARE-ENGINEER-AGENT/
 ## 📄 License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+

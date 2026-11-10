@@ -79,7 +79,7 @@ const SettingsView = () => {
             <span>Backend Connection Status</span>
           </div>
           <div className="settings-section-desc">
-            Live health verification for the Flask AI agent backend running on localhost:5000.
+            Live health verification for the configured Flask AI agent backend.
           </div>
 
           <div className="settings-row">
@@ -131,7 +131,7 @@ const SettingsView = () => {
                 color: '#fda4af'
               }}
             >
-              <strong>Backend Offline:</strong> To start the agent backend, open a terminal in the project root and run:
+              <strong>Backend Offline or Cold Starting:</strong> If deployed on Render (free tier), the service may take 30-50 seconds to spin up from idle. Click <strong>Test Ping</strong> after a moment. For local development, run:
               <pre style={{ marginTop: 6, background: '#090d16', padding: '8px 12px', borderRadius: 4, color: '#f8fafc' }}>
                 cd backend && python run.py
               </pre>
@@ -165,7 +165,7 @@ const SettingsView = () => {
               <div className="settings-label-desc">Open weights state-of-the-art coding and reasoning</div>
             </div>
             <div style={{ fontWeight: 600, color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)' }}>
-              llama-3.3-70b-versatile
+              qwen/qwen3.8-27b (Active)
             </div>
           </div>
 

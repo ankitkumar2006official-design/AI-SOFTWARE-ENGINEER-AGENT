@@ -161,7 +161,7 @@ const Navbar = () => {
         {/* Model Indicator Pill */}
         <div className="model-badge-pill" title="Inference model: Groq Cloud LPU">
           <LuCpu size={13} style={{ color: '#a78bfa' }} />
-          <span>Groq Llama 3</span>
+          <span>Groq AI LPU</span>
         </div>
 
         {/* Backend Heartbeat Status */}
