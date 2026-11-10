@@ -6,3 +6,4 @@ requests
 huggingface_hub
 langchain
 pydantic
+gunicorn
